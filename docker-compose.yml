@@ -1,0 +1,91 @@
+version: '3.6'
+services:
+  nginx:
+    image: nginx:latest
+    container_name: ${APP_NAME}-nginx
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./config/nginx/templates/:/etc/nginx/templates/
+      - ./config/nginx/certs:/etc/certs
+      - ./src:/var/www/html:rw,cached
+      - ./logs/access.log:/var/log/nginx/access.log
+      - ./logs/error.log:/var/log/nginx/error.log
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - "NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf"
+      - "DOMAIN=${DOMAIN}"
+    depends_on:
+      - wordpress
+    restart: unless-stopped
+
+  mysql:
+    image: mariadb
+    container_name: ${APP_NAME}-mysql
+    command: --lower_case_table_names=2
+    volumes:
+       - './db:/var/lib/mysql:delegated'
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+    ports:
+      - '3306:3306'
+    restart: unless-stopped
+
+  wordpress:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${APP_NAME}-wordpress
+    volumes:
+      - ./src:/var/www/html:rw,cached
+      - ./config/php.ini:/usr/local/etc/php/conf.d/php.ini
+      - ./config/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ./logs:/tmp/xdebug
+      - ./logs/debug.log:/var/www/html/wp-content/debug.log
+      - ./install-wp.sh:/usr/local/bin/install-wp:ro
+      - /etc/localtime:/etc/localtime:ro
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=${DB_HOST}
+      - WORDPRESS_DB_NAME=${DB_NAME}
+      - WORDPRESS_DB_USER=${DB_USER}
+      - WORDPRESS_DB_PASSWORD=${DB_ROOT_PASSWORD}
+      - WORDPRESS_TABLE_PREFIX=${DB_TABLE_PREFIX}
+      - WORDPRESS_DEBUG=${WORDPRESS_DEBUG:-false}
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ${APP_NAME}-phpmyadmin
+    volumes:
+      - ./config/phpmyadmin.ini:/usr/local/etc/php/conf.d/phpmyadmin.ini
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      PMA_HOST: "${DB_HOST}"
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+    ports:
+      - '8082:80'
+    links:
+      - mysql:mysql
+    restart: unless-stopped
+
+  mailhog:
+    container_name: ${APP_NAME}-mailhog
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    restart: unless-stopped
+
+  composer:
+    image: composer
+    container_name: ${APP_NAME}-composer
+    working_dir: /var/www/html
+    restart: 'no'
+    volumes:
+      - ./src:/var/www/html:rw,cached
