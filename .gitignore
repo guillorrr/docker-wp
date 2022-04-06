@@ -1,0 +1,8 @@
+# directories
+config/nginx/certs/
+src/
+db/
+logs/
+
+# files
+.env

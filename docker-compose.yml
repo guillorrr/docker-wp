@@ -44,7 +44,6 @@ services:
       - ./config/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
       - ./logs:/tmp/xdebug
       - ./logs/debug.log:/var/www/html/wp-content/debug.log
-      - ./install-wp.sh:/usr/local/bin/install-wp:ro
       - /etc/localtime:/etc/localtime:ro
     env_file: .env
     environment:
