@@ -65,7 +65,7 @@ DB_TABLE_PREFIX=wp_
 1. Create a SSL cert:
 
 ```shell
-cd cli
+cd config
 ./create-cert.sh
 ```
 
