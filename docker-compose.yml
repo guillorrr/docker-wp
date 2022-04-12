@@ -12,7 +12,6 @@ services:
       - ./src:/var/www/html:rw,cached
       - ./logs/access.log:/var/log/nginx/access.log
       - ./logs/error.log:/var/log/nginx/error.log
-      - /etc/localtime:/etc/localtime:ro
     environment:
       - "NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf"
       - "DOMAIN=${DOMAIN}"
@@ -44,7 +43,6 @@ services:
       - ./config/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
       - ./logs:/tmp/xdebug
       - ./logs/debug.log:/var/www/html/wp-content/debug.log
-      - /etc/localtime:/etc/localtime:ro
     env_file: .env
     environment:
       - WORDPRESS_DB_HOST=${DB_HOST}
@@ -52,7 +50,25 @@ services:
       - WORDPRESS_DB_USER=${DB_USER}
       - WORDPRESS_DB_PASSWORD=${DB_ROOT_PASSWORD}
       - WORDPRESS_TABLE_PREFIX=${DB_TABLE_PREFIX}
-      - WORDPRESS_DEBUG=${WORDPRESS_DEBUG:-false}
+      - WORDPRESS_DEBUG=${WORDPRESS_DEBUG}
+      - WORDPRESS_CONFIG_EXTRA=
+        /* Site default url */
+        define( 'WP_HOME', 'http://example.com' );
+        define( 'WP_SITEURL', 'http://example.com' );
+        /* Debug extras */
+        define( 'WP_DEBUG_LOG', true );
+        define( 'WP_DEBUG_DISPLAY', false ); // Disable display of errors and warnings
+        @ini_set( 'display_errors', 0 );
+        define( 'SCRIPT_DEBUG', false ); // Use dev versions of core JS and CSS files (only needed if you are modifying these core files)
+        define( 'SAVEQUERIES', false ); // Saves the database queries to an array. The array is stored in the global $wpdb->queries.
+        /* Multisite */
+        # define('WP_ALLOW_MULTISITE', true );
+        # define('MULTISITE', true);
+        # define('SUBDOMAIN_INSTALL', false);
+        # define('DOMAIN_CURRENT_SITE', 'localhost'); // TODO: change to actual domain when deploying
+        # define('PATH_CURRENT_SITE', '/');
+        # define('SITE_ID_CURRENT_SITE', 1);
+        # define('BLOG_ID_CURRENT_SITE', 1);
     depends_on:
       - mysql
     restart: unless-stopped
@@ -62,7 +78,6 @@ services:
     container_name: ${APP_NAME}-phpmyadmin
     volumes:
       - ./config/phpmyadmin.ini:/usr/local/etc/php/conf.d/phpmyadmin.ini
-      - /etc/localtime:/etc/localtime:ro
     environment:
       PMA_HOST: "${DB_HOST}"
       PMA_PORT: 3306

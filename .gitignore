@@ -6,3 +6,7 @@ logs/
 
 # files
 .env
+logs/access.log
+logs/debug.log
+logs/error.log
+logs/xdebug.log
