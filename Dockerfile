@@ -1,5 +1,11 @@
 FROM wordpress:5-php7.4-fpm
 
+# Install locales
+RUN apt-get update && apt-get install -y locales
+RUN sed -i '/^#.* es_ES.* /s/^#//' /etc/locale.gen
+RUN sed -i '/^#.* ca_ES.* /s/^#//' /etc/locale.gen
+RUN locale-gen
+
 # Install xdebug
 RUN pecl install xdebug-2.9.8 && docker-php-ext-enable xdebug
 RUN usermod -u 1000 www-data && groupmod -o -g 1000 www-data
