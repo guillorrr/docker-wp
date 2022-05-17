@@ -51,11 +51,13 @@ Example:
 ```dotenv
 IP=127.0.0.1
 APP_NAME=myapp
-DOMAIN="myapp.local"
+DOMAIN=myapp.local
 DB_HOST=mysql
 DB_NAME=myapp
+DB_USER=root
 DB_ROOT_PASSWORD=password
 DB_TABLE_PREFIX=wp_
+WORDPRESS_DEBUG=false
 ```
 </details>
 
@@ -92,13 +94,13 @@ Add your selected domain like this:
 <details>
  <summary>Option 2). Use a simple config</summary>
 
-1. Edit `nginx/default.conf.conf` to use this simpler config (without using a cert and HTTPS)
+1. Edit `config/nginx/templates/default.conf.conf` to use this simpler config (without using a cert and HTTPS)
 
 ```shell
 server {
     listen 80;
 
-    root /var/www/html/web;
+    root /var/www/html;
     index index.php;
 
     access_log /var/log/nginx/access.log;
@@ -175,12 +177,6 @@ MailHog comes installed as a service in docker-compose.
 <details>
  <summary>Tools</summary>
 
-### Update WordPress Core and Composer packages (plugins/themes)
-
-```shell
-docker-compose run composer update
-```
-
 #### Use WP-CLI
 
 ```shell
@@ -194,17 +190,6 @@ wp search-replace https://olddomain.com https://newdomain.com --allow-root
 ```
 
 Run a wp-cli command
-
-> You can use this command first after you've installed WordPress using Composer as the example above.
-
-### Update plugins and themes from wp-admin?
-
-You can, but I recommend to use Composer for this only. But to enable this edit `./src/config/environments/development.php` (for example to use it in Dev)
-
-```shell
-Config::define('DISALLOW_FILE_EDIT', false);
-Config::define('DISALLOW_FILE_MODS', false);
-```
 
 ### Useful Docker Commands
 
